@@ -1,0 +1,45 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}-frontend-php
+  labels:
+    app: frontend-php
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-php
+  template:
+    metadata:
+      labels:
+        app: frontend-php
+        resetable: data
+    spec:
+      containers:
+      - name: runner-php
+        image: {{ .Values.imageName }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | quote }}
+        env:
+        - name: APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "fullname" . }}-global-env
+              key: APP_ENV
+        ports:
+        - name: nginx
+          containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: nginx
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      volumeMounts:
+      - mountPath: /tmpfs
+        name: tmpfs
+      volumes:
+      - name: tmpfs
+        emptyDir:
+        medium: Memory
+        sizeLimit: "10Mi"

@@ -1,0 +1,52 @@
+apiVersion: skaffold/v1beta5
+kind: Config
+
+profiles:
+  - name: dev
+    build:
+      tagPolicy:
+        gitCommit: {}
+#    test:
+#      - image: registry.gitlab.com/micoli/k8s-sport
+#        structureTests:
+#          - ./tests/skaffold/disable-*
+
+build:
+  tagPolicy:
+    envTemplate:
+      template: "{{.IMAGE_NAME}}:{{._CI_COMMIT_SHA}}"
+
+  local:
+    push: false
+
+  artifacts:
+  - image: registry.gitlab.com/micoli/k8s-sport
+    context: .
+    docker:
+      buildArgs:
+        APP_ENV: dev
+    sync:
+      'bin/**': /application/bin
+      'config/**': /application/config
+      'public/**': /application/public
+      'src/**': /application/src
+      'templates/**': /application/templates
+      'tests/**': /application/tests
+      'Makefile': /application/Makefile
+
+      'phpunit.xml.dist': /application/phpunit.xml.dist
+      '.php_cs.dist': /application/.php_cs.dist
+      '.env': /application/.env
+
+      '.docker': /dev/null
+      '.helm': /dev/null
+
+deploy:
+  helm:
+    releases:
+    - name: fussball
+      chartPath: .helm
+      valuesFiles:
+      - .helm/values.yaml
+      values:
+        imageName: registry.gitlab.com/micoli/k8s-sport

@@ -1,0 +1,8 @@
+vendor
+var
+.helm
+.gitlab-ci
+.gitlab-ci.yml
+builds
+.docker/nodejs/node_modules
+.docker/nodejs/npm-debug.log
